@@ -1,6 +1,13 @@
-
 {
   "development": {
+     "username": "User_Airline_Flight_Backend",
+    "password": "User_Airline_Flight_Backend@2025",
+    "database": "flights",
+    "host": "127.0.0.1",
+    "port":"3306",
+    "dialect": "mysql"
+  },
+  "test": {
     "username": "User_Airline_Flight_Backend",
     "password": "User_Airline_Flight_Backend@2025",
     "database": "flights",
@@ -8,16 +15,8 @@
     "port":"3306",
     "dialect": "mysql"
   },
-  "test":  {
-     "username": "User_Airline_Flight_Backend",
-    "password": "User_Airline_Flight_Backend@2025",
-    "database": "flights",
-    "host": "127.0.0.1",
-    "port":"3306",
-    "dialect": "mysql"
-  },
-  "production":  {
-     "username": "User_Airline_Flight_Backend",
+  "production": {
+    "username": "User_Airline_Flight_Backend",
     "password": "User_Airline_Flight_Backend@2025",
     "database": "flights",
     "host": "127.0.0.1",
