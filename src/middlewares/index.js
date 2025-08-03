@@ -1,5 +1,5 @@
-const AirplaneMiddleware = require('./airplane.middleware');
+const BookingMiddleware = require('./booking.middleware');
 
 module.exports = {
-  Airplane:AirplaneMiddleware,
+  Booking:BookingMiddleware,
 };

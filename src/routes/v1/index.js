@@ -1,10 +1,7 @@
 
 const express  = require('express');
-
-const airplaneRoutes = require('./airplane.routes');
+const bookingRouter = require('./booking.routes');
 const v1Routes = express.Router();
 
-v1Routes.use('/airplane',airplaneRoutes);
-
-
+v1Routes.use('/booking',bookingRouter);
 module.exports = v1Routes;

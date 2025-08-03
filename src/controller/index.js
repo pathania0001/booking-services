@@ -1,6 +1,6 @@
 
-const AirplaneController = require('./airplane.controller');
+const BookingController = require('./booking.controller');
 
 module.exports = {
-    Airplane : AirplaneController,
+    Booking : BookingController,
 }

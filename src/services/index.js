@@ -1,6 +1,6 @@
 
-const AirplaneServices = require('./airplain.service')
+const BookingServices = require('./booking.service');
 
 module.exports = {
-    Airplane:AirplaneServices,
+    Booking:BookingServices,
 }
