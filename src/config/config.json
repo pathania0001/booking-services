@@ -1,0 +1,34 @@
+
+{
+  "development": {
+    "username": "User_Name",
+    "password": "User_@Password",
+    "database": "Database name say flights",
+    "host": "127.0.0.1",
+    "port":"3306",
+    "dialect": "mysql or portgre"
+  },
+  "test":  {
+    "username": "User_Name",
+    "password": "User_@Password",
+    "database": "Database name say flights",
+    "host": "127.0.0.1",
+    "port":"3306",
+    "dialect": "mysql or portgre"
+  },
+  "production":  {
+    "username": "User_Name",
+    "password": "User_@Password",
+    "database": "Database name say flights",
+    "host": "127.0.0.1",
+    "port":"3306",
+    "dialect": "mysql or portgre"
+  },
+
+  "__comment__":{
+    "1":"This is directly used by sequelize in models/index.js folder which is created using npx sequelize commands or by sequelize",
+    "2":"sequelize use this json file for connection with database",
+    "3":"we dont need to connect manualy.yes we can also make  connection by our own. check in my (checkDBConnection) file.but sequlize can do this for use during npx sequlize inti command in cli"
+  }
+   
+}
