@@ -76,9 +76,9 @@ web_modules/
 
 
 ##just uncomment these env files below
-##.env
-##.env.test
-##.env.production
+.env
+.env.test
+.env.production
 
 
 
@@ -135,7 +135,7 @@ combined.logger.file
 
 
 ##just uncomment these  files below
-##src/config/config.json
+src/config/config.json
 
 
 
