@@ -37,10 +37,24 @@ module.exports = (sequelize, DataTypes) => {
     totalCost: {
       type:DataTypes.INTEGER,
       allowNull:false,
+      validate:{
+        min:1
+      }
     }
   }, {
     sequelize,
     modelName: 'Booking',
+  },{
+    indexes:[
+      { 
+        uniqu:true,
+        fields:['userId','flightId']
+      },
+      { 
+        uniqu:true,
+        fields:['flightId']
+      }
+    ]
   });
   return Booking;
 };
