@@ -44,6 +44,7 @@ const createBooking = async (data) => {
               else 
                 throw new AppError(["Something went wrong Creating Booking"],StatusCodes.INTERNAL_SERVER_ERROR);
   }
+
 };
 
 module.exports = {
