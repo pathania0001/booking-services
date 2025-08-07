@@ -5,6 +5,5 @@ const ENUM = require('./enums');
 module.exports = {
     SuccessResponse,
     ErrorResponse,
-    ENUM,
-    
+    ENUM,   
 }
