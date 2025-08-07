@@ -35,6 +35,9 @@ module.exports = {
       totalCost: {
         type: Sequelize.INTEGER,
         allowNull:false,
+        validate:{
+          min:1,
+        }
       },
       createdAt: {
         allowNull: false,
