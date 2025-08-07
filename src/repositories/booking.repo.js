@@ -10,5 +10,18 @@ class BookingRepository extends CrudRepositories{
     async create(data,transaction){
        return await Booking.create(data,{transaction})
     }
+
+    async get(id,transaction){
+        return await Booking.findByPk(id,{transaction});
+    }
+
+    async update (bookingId , data , transaction){
+       return await Booking.update( data ,
+        {
+            where:{
+                id:bookingId
+            }}
+            ,{transaction})
+    }
 }
 module.exports = BookingRepository
