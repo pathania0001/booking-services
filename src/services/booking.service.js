@@ -5,6 +5,7 @@ const db = require("../models");
 const { Base_Url_For_Flight_Services } = require("../config");
 const { default: axios } = require("axios");
 const { ENUM } = require("../utils/common");
+const { Op } = require("sequelize");
 
 const { CANCELLED ,BOOKED} = ENUM.BOOKING_STATUS;
 const bookingRepository = new BookingRepository();
@@ -38,7 +39,7 @@ const createBooking = async (data) => {
 
     await axios.patch(
       `${Base_Url_For_Flight_Services}/api/v1/flight/${data.flightId}/seats`,
-      { seats: data?.numberOfSeats }
+      { seats: data?.numberOfSeats, dec: 1}
     );
 
     await transaction.commit();
@@ -48,10 +49,12 @@ const createBooking = async (data) => {
     await transaction.rollback();
     //throw error
     console.log("error :check", JSON.stringify(error, null, 2));
-
-    if (error.status === 404) {
-      throw new AppError(["Flight not found"], StatusCodes.BAD_REQUEST);
-    } else
+   if(error instanceof AppError)
+      throw error;
+    if(error.status === 400){
+      throw new AppError(["SomeThing went wrong in Creating Booking due to BAD_REQUEST"])
+    }
+     else
       throw new AppError(
         ["Something went wrong Creating Booking"],
         StatusCodes.INTERNAL_SERVER_ERROR
@@ -100,7 +103,7 @@ const makePayment = async (data) => {
     await transaction.commit();
     return bookingData;
   } catch (error) {
-    transaction.rollback();
+    await transaction.rollback();
     console.log(JSON.stringify(error, null, 2));
     throw error;
   }
@@ -119,16 +122,46 @@ const cancelBooking = async (bookingId) => {
     await axios.patch(
       `${Base_Url_For_Flight_Services}/api/v1/flight/${bookingData.flightId}/seats`, { seats: bookingData.numberOfSeats , dec: 0});
     await bookingRepository.update(bookingData.id,{ status: CANCELLED },transaction);
-    transaction.commit();
+   await transaction.commit();
     return true;
   } catch (error) {
     console.log(JSON.stringify(error, null, 2));
-    transaction.rollback();
+    await transaction.rollback();
     throw error;
   }
 };
 
+const cancelExpiredBooking = async () =>{
+ const transaction = await db.sequelize.transaction();
+  try {
+    const tenMinutesAgo = new Date(Date.now() - 10*60*1000);
+    const expiredBookings = await bookingRepository.getAll({
+    where:{
+      status:{[Op.notIn]: [CANCELLED,BOOKED]},
+      createdAt:{
+        [Op.lt]:tenMinutesAgo
+      }
+    }
+   },transaction)  
+   
+     expiredBookings.forEach(async(booking) => {
+      await axios.patch(
+      `${Base_Url_For_Flight_Services}/api/v1/flight/${booking.flightId}/seats`,
+       { seats: booking.numberOfSeats , dec: 0});
+
+       await bookingRepository.update(booking.id,{ status: CANCELLED },transaction);     
+     })  
+     await transaction.commit();
+     return true;
+  } catch (error) {
+   await transaction.rollback();
+    throw error
+  }
+};
+
+
 module.exports = {
   createBooking,
   makePayment,
+  cancelExpiredBooking,
 };
