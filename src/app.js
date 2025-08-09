@@ -3,6 +3,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { CORS_ORIGIN } = require("./config");
 const routes = require("./routes");
+const {client,functions} = require("./inngest");
+const { serve } = require("inngest/express");
 
 const app = express();
 
@@ -31,6 +33,8 @@ app.get("/", (req, res) => {
 
 
 app.use("/api", routes);
+
+app.use("/api/inngest", serve({ client, functions }));
 
 
 module.exports = app ;

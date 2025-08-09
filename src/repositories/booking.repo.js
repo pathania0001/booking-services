@@ -14,7 +14,10 @@ class BookingRepository extends CrudRepositories{
     async get(id,transaction){
         return await Booking.findByPk(id,{transaction});
     }
-
+    
+    async getAll(condition,transaction){
+        return await Booking.findAll(condition,{transaction})
+    }
     async update (bookingId , data , transaction){
        return await Booking.update( data ,
         {
