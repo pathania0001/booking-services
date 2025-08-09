@@ -131,36 +131,34 @@ const cancelBooking = async (bookingId) => {
   }
 };
 
-const cancelExpiredBooking = async () =>{
 
-  try {
-    const tenMinutesAgo = new Date(Date.now() - 10*60*1000);
-    const expiredBookings = await bookingRepository.getAll({
-    where:{
-      status:{[Op.notIn]: [CANCELLED,BOOKED]},
-      createdAt:{
+const findingExpiredBookings = async()=>{
+     const tenMinutesAgo = new Date(Date.now() - 10*60*1000);
+    return await bookingRepository.getAll({
+      where:{
+       createdAt:{
         [Op.lt]:tenMinutesAgo
-      }
-    }
-   })  
-   
+      },
+      status : { [Op.notIn] : [BOOKED,CANCELLED] }}})
 
-    await Promise.all(expiredBookings.map((booking)=>{
-      return axios.patch(`${Base_Url_For_Flight_Services}/api/v1/flight/${booking.flightId}/seats`,{seats:booking.numberOfSeats,dec:0})
-                   .then(()=> bookingRepository.update(booking.bookingId,{status:CANCELLED}))
-                   .then(()=>console.error(`Booking id :${booking.bookingId} is Cancelled`))
-                   .catch((error)=>console.error(`failed to cancel Booking Id : ${booking.bookingId}`,error.message));
-    }))
-     return true;
-     
-  } catch (error) {
-    throw error
-  }
-};
+}
+
+const updateCorrespondingSeats = async (flightId,numberOfSeats) =>{
+  // console.log(flightId,numberOfSeats)
+    await axios.patch(`${Base_Url_For_Flight_Services}/api/v1/flight/${flightId}/seats`,
+      {seats:numberOfSeats,dec:0}
+    )
+}
+const updateCorrespondingBookingStatus = async (bookingId)=>{
+  // console.log(bookingId)
+  await bookingRepository.update(bookingId,{status:CANCELLED});
+}
 
 
 module.exports = {
   createBooking,
   makePayment,
-  cancelExpiredBooking,
+  findingExpiredBookings,
+  updateCorrespondingSeats,
+  updateCorrespondingBookingStatus,
 };

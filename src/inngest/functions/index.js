@@ -1,6 +1,8 @@
 
 const inngestClient = require('../client')
-const {cancelExpiredBooking} = require('../../services/booking.service');
+const {findingExpiredBookings, updateCorrespondingBookingStatus, updateCorrespondingSeats} = require('../../services/booking.service');
+
+
 const helloWorld = inngestClient.createFunction(
   { id: "hello-world" },
   { event: "test/hello.world" },
@@ -14,9 +16,16 @@ const cancelBookings = inngestClient.createFunction(
     {id:"cancel-expire-booking"},
     {cron:'*/10 * * * *'},
     async ({step}) =>{
-       await step.run("Cancel expired bookings", async () => {
-      await cancelExpiredBooking();
-    });
+       const expiredBookings = await step.run("get expired bookings", async () => findingExpiredBookings() );
+       if(expiredBookings.length === 0)
+        return true;
+       for(const booking of expiredBookings){ //each funtion id shoud be diffrent,when ever called ,ehich is usefull for retries
+
+       await step.run(`restoring the seats of id : ${booking.flightId}`,async () => await updateCorrespondingSeats(booking.flightId,booking.numberOfSeats))
+       console.log(`retored the seats of flight of expired booking id : ${booking.id}`)
+       await step.run(`updating status of id : ${booking.id}`, async ()=> await updateCorrespondingBookingStatus(booking.id))
+       console.log(`updated the status to cancelled of expired booking id : ${booking.id}`)
+     }
     }
 )
 
