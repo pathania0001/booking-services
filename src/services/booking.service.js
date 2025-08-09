@@ -132,7 +132,7 @@ const cancelBooking = async (bookingId) => {
 };
 
 const cancelExpiredBooking = async () =>{
- const transaction = await db.sequelize.transaction();
+
   try {
     const tenMinutesAgo = new Date(Date.now() - 10*60*1000);
     const expiredBookings = await bookingRepository.getAll({
@@ -142,19 +142,18 @@ const cancelExpiredBooking = async () =>{
         [Op.lt]:tenMinutesAgo
       }
     }
-   },transaction)  
+   })  
    
-     expiredBookings.forEach(async(booking) => {
-      await axios.patch(
-      `${Base_Url_For_Flight_Services}/api/v1/flight/${booking.flightId}/seats`,
-       { seats: booking.numberOfSeats , dec: 0});
 
-       await bookingRepository.update(booking.id,{ status: CANCELLED },transaction);     
-     })  
-     await transaction.commit();
+    await Promise.all(expiredBookings.map((booking)=>{
+      return axios.patch(`${Base_Url_For_Flight_Services}/api/v1/flight/${booking.flightId}/seats`,{seats:booking.numberOfSeats,dec:0})
+                   .then(()=> bookingRepository.update(booking.bookingId,{status:CANCELLED}))
+                   .then(()=>console.error(`Booking id :${booking.bookingId} is Cancelled`))
+                   .catch((error)=>console.error(`failed to cancel Booking Id : ${booking.bookingId}`,error.message));
+    }))
      return true;
+     
   } catch (error) {
-   await transaction.rollback();
     throw error
   }
 };
