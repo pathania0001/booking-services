@@ -12,7 +12,7 @@ const { response } = require("express");
     try {
         const booking = await Service.Booking.createBooking({
           flightId : req.body.flightId,
-          userId : req.body.userId,
+          userId : req.headers["x-user-id"],
           numberOfSeats:req.body?.numberOfSeats || 1,
          })
        
@@ -36,7 +36,7 @@ const makePayment  = async(req,res)=>{
      const response = await Service.Booking.makePayment(
     {
       bookingId:req.body.bookingId,
-      userId:req.body.userId,
+      userId:req.headers["x-user-id"],
       totalCost:req.body.totalCost
     });
     SuccessResponse.data = response;

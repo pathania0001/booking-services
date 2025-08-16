@@ -1,5 +1,6 @@
-const BookingMiddleware = require('./booking.middleware');
-
+const Booking = require('./booking.middleware');
+const Auth = require('./auth.middleware')
 module.exports = {
-  Booking:BookingMiddleware,
+  Booking,
+  Auth,
 };
