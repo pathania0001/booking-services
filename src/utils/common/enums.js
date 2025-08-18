@@ -12,7 +12,13 @@ const BOOKING_STATUS = {
     INITIATED:"initiated",
 }
 
+const USER_ROLE= {
+    USER:'user',
+    ADMIN:'admin',
+    SYSTEM:'system'
+}
 module.exports = {
     SEAT_TYPE,
     BOOKING_STATUS,
+    USER_ROLE
 }

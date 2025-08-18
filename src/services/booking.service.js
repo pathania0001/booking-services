@@ -2,7 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const { BookingRepository } = require("../repositories");
 const { AppError } = require("../utils");
 const db = require("../models");
-const { Base_Url_For_Flight_Services } = require("../config");
+const { Base_Url_For_Flight_Services, THIS_SERVICE } = require("../config");
 const { default: axios } = require("axios");
 const { ENUM } = require("../utils/common");
 const { Op } = require("sequelize");
@@ -14,13 +14,28 @@ const createBooking = async (data) => {
   console.log("inside-create-booking service");
   const transaction = await db.sequelize.transaction();
   try {
+
+    const alreadyInProgress = await bookingRepository.getAll({
+      where:{
+        flightId:data.flightId,
+        userId:data.userId,
+        status:{
+          [Op.ne]:[CANCELLED]
+        }
+      }
+    }) 
+    
+    if(alreadyInProgress?.length>0){
+      throw new AppError(["Your already have Booking in progress.Please cancel is before making a new booking."])
+    }
+      
     const flight = await axios.get(
-      `${Base_Url_For_Flight_Services}/api/v1/flight/${data.flightId}`
+      `${Base_Url_For_Flight_Services}/api/v1/flight/${data.flightId}`,
     );
     // not this http req. not respecting the locks if there any in flight service size
     //so it can be solvewith the help of streaming services like kafka or background event driven services like inngest it is  for future;
     const flightData = flight.data.data;
-    // console.log(flightData)
+     //console.log(flightData)
 
     //same for user_
 
@@ -36,16 +51,20 @@ const createBooking = async (data) => {
 
     const bookingPayload = { ...data, totalCost: totalBillingAmount };
     const booking = await bookingRepository.create(bookingPayload, transaction);
-
     await axios.patch(
       `${Base_Url_For_Flight_Services}/api/v1/flight/${data.flightId}/seats`,
-      { seats: data?.numberOfSeats, dec: 1}
+        { seats: data?.numberOfSeats,dec: 1},
+        {
+        headers:{
+          'x-internal-service':THIS_SERVICE
+        }}
     );
 
     await transaction.commit();
-    console.log(JSON.stringify(booking, null, 2));
+    //console.log(JSON.stringify(booking, null, 2));
     return booking;
   } catch (error) {
+   // console.log("errror: ",error)
     await transaction.rollback();
     //throw error
     console.log("error :check", JSON.stringify(error, null, 2));
@@ -94,7 +113,10 @@ const makePayment = async (data) => {
     const currTime = Date.now();
 
     if (currTime - bookingTime > 10 * 60 * 1000) {
-         cancelBooking(bookingData.id);
+         await cancelBooking({
+          bookingId:bookingData.id,
+          role:data.role||ENUM.USER_ROLE.USER,
+          userId:data.userId});
          throw new AppError(["The time span corresponding to payment is Expired"],StatusCodes.BAD_REQUEST);
     }
     
@@ -109,7 +131,7 @@ const makePayment = async (data) => {
   }
 };
 
-const cancelBooking = async (bookingId) => {
+const cancelBooking = async ({bookingId,role,userId}) => {
   const transaction = await db.sequelize.transaction();
   try {
     // console.log("inside cancelling",bookingId)
@@ -119,12 +141,23 @@ const cancelBooking = async (bookingId) => {
       transaction.commit();
       return true;
     }
+    
+    if(bookingData.userId !== userId)
+      throw new AppError(["Access Denied : Not Allowed"]);
+
     await axios.patch(
-      `${Base_Url_For_Flight_Services}/api/v1/flight/${bookingData.flightId}/seats`, { seats: bookingData.numberOfSeats , dec: 0});
-    await bookingRepository.update(bookingData.id,{ status: CANCELLED },transaction);
+      `${Base_Url_For_Flight_Services}/api/v1/flight/${bookingData.flightId}/seats`,
+      { seats: bookingData.numberOfSeats , dec: 0},
+     { headers:{
+          'x-internal-service':THIS_SERVICE,
+          'x-user-role':role
+        }}
+      );
+   await bookingRepository.update(bookingData.id,{ status: CANCELLED },transaction);
    await transaction.commit();
     return true;
   } catch (error) {
+    console.log(error)
     console.log(JSON.stringify(error, null, 2));
     await transaction.rollback();
     throw error;
@@ -143,10 +176,14 @@ const findingExpiredBookings = async()=>{
 
 }
 
-const updateCorrespondingSeats = async (flightId,numberOfSeats) =>{
+const updateCorrespondingSeats = async ({flightId,numberOfSeats,role}) =>{
   // console.log(flightId,numberOfSeats)
     await axios.patch(`${Base_Url_For_Flight_Services}/api/v1/flight/${flightId}/seats`,
-      {seats:numberOfSeats,dec:0}
+      {seats:numberOfSeats,dec:0},
+      { headers:{
+          'x-internal-service':THIS_SERVICE,
+          'x-role':role
+        }}
     )
 }
 const updateCorrespondingBookingStatus = async (bookingId)=>{
@@ -158,6 +195,7 @@ const updateCorrespondingBookingStatus = async (bookingId)=>{
 module.exports = {
   createBooking,
   makePayment,
+  cancelBooking,
   findingExpiredBookings,
   updateCorrespondingSeats,
   updateCorrespondingBookingStatus,

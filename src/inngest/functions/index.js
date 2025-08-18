@@ -21,7 +21,11 @@ const cancelBookings = inngestClient.createFunction(
         return true;
        for(const booking of expiredBookings){ //each funtion id shoud be diffrent,when ever called ,ehich is usefull for retries
 
-       await step.run(`restoring the seats of id : ${booking.flightId}`,async () => await updateCorrespondingSeats(booking.flightId,booking.numberOfSeats))
+       await step.run(`restoring the seats of id : ${booking.flightId}`,async () => await updateCorrespondingSeats({
+        flightId:booking.flightId,
+        numberOfSeats:booking.numberOfSeats,
+         role:ENUM.USER_ROLE.SYSTEM
+      }))
        console.log(`retored the seats of flight of expired booking id : ${booking.id}`)
        await step.run(`updating status of id : ${booking.id}`, async ()=> await updateCorrespondingBookingStatus(booking.id))
        console.log(`updated the status to cancelled of expired booking id : ${booking.id}`)

@@ -5,10 +5,9 @@ const { ErrorResponse } = require("../utils/common");
  const validateBookingRequest = (req,res,next)=>{
         const {flightId} = req.body;
 
-        ErrorResponse.message = "Something went wrong while creating new booking";
-
         if(!flightId){
-         ErrorResponse.error =  new AppError(["Flight is not found in the onncoming request form"],StatusCodes.BAD_REQUEST)
+          ErrorResponse.message = "Something went wrong while creating new booking";
+         ErrorResponse.error =  new AppError(["Flight is not found in the onncoming request"],StatusCodes.BAD_REQUEST)
            return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
         }
    
@@ -31,7 +30,22 @@ const validatePaymentBookingRequest = (req,res,next)=>{
    next();
 }
 
+const validateDeleteBookingRequest = (req,res,next) =>{
+   const bookingId = req.body.bookingId;
+
+   if(!bookingId){
+    console.log("validate booking error")
+    ErrorResponse.message = "Something went wrong while deleting booking";
+    ErrorResponse.error = new AppError(["bookingId is not there in the oncoming deleting request"].StatusCodes.BAD_REQUEST);
+
+    return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse);
+   }
+
+   next();
+}
+
 module.exports = {
   validateBookingRequest,
-  validatePaymentBookingRequest
+  validatePaymentBookingRequest,
+  validateDeleteBookingRequest,
 }
