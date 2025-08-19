@@ -10,7 +10,6 @@ bookingRouter.route("/register").post(
 
 bookingRouter.route("/payment").patch(
     Middleware.Auth.isAuthenticated,
-    Middleware.Booking.validateBookingRequest,
     Middleware.Booking.validatePaymentBookingRequest,
     Controller.Booking.makePayment);
 bookingRouter.route("/cancel-booking").patch(

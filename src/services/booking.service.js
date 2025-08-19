@@ -2,7 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const { BookingRepository } = require("../repositories");
 const { AppError } = require("../utils");
 const db = require("../models");
-const { Base_Url_For_Flight_Services, THIS_SERVICE } = require("../config");
+const { Base_Url_For_Flight_Services, THIS_SERVICE, Queue } = require("../config");
 const { default: axios } = require("axios");
 const { ENUM } = require("../utils/common");
 const { Op } = require("sequelize");
@@ -121,7 +121,11 @@ const makePayment = async (data) => {
     }
     
     await bookingRepository.update(bookingData.id,{status:BOOKED})
-
+      Queue.sendData({
+            recepientEmail: 'mydummy867@gmail.com',
+            subject: 'Flight booked',
+            text: `Booking successfully done for the booking ${data.bookingId}`
+        });
     await transaction.commit();
     return bookingData;
   } catch (error) {
